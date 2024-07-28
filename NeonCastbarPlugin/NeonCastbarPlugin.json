@@ -1,0 +1,16 @@
+{
+    "Author": "oorzkws",
+    "Name": "Neon Castbars",
+    "Punchline": "Colors enemy castbars based on progress",
+    "Description": "Colors your target and/or focus target castbars based on their progress.",
+    "InternalName": "NeonCastbarPlugin",
+    "RepoUrl": "https://github.com/oorzkws/NeonCastbarPlugin",
+    "ApplicableVersion": "any",
+    "Tags": [
+        "cast bars",
+        "castbars"
+    ],
+    "CategoryTags": [
+        "UI"
+    ]
+}
