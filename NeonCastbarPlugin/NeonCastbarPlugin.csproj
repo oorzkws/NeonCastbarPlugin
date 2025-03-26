@@ -4,7 +4,7 @@
 
     <PropertyGroup>
         <AssemblyTitle>NeonCastbarPlugin</AssemblyTitle>
-        <Version>7.0.1.0</Version>
+        <Version>7.0.2.0</Version>
         <Description>Colors enemy castbars</Description>
         <PackageProjectUrl>https://github.com/oorzkws/NeonCastbarPlugin</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
@@ -22,4 +22,8 @@
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <DebugType>pdbonly</DebugType>
     </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Update="DalamudPackager" Version="12.0.0" />
+    </ItemGroup>
 </Project>

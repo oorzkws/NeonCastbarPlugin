@@ -7,9 +7,9 @@ using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Component.GUI;
-using SamplePlugin.Windows;
+using NeonCastbarPlugin.Windows;
 
-namespace SamplePlugin;
+namespace NeonCastbarPlugin;
 
 // ReSharper disable once ClassNeverInstantiated.Global
 public sealed class NeonCastbarPlugin : IDalamudPlugin
