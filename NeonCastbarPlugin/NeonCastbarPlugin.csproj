@@ -21,17 +21,6 @@
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <OutputPath>bin\$(Configuration)\</OutputPath>
     </PropertyGroup>
-
-    <PropertyGroup>
-        <DalamudLibPath>D:\Utilities\DalamudStandalone\Dalamud\bin\Release\</DalamudLibPath>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <Reference Include="Dalamud.Bindings.ImGui">
-            <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-    </ItemGroup>
     
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <DebugType>full</DebugType>
