@@ -6,9 +6,10 @@ namespace NeonCastbarPlugin;
 [Serializable]
 public class Configuration : IPluginConfiguration
 {
-    public int Version { get; set; } = 0;
+    public int Version { get; set; } = 1;
 
     public bool AffectsTargetCastbar { get; set; } = true;
+    public bool AffectsNameplateCastbar { get; set; } = true;
     public bool AffectsFocusTargetCastbar { get; set; }
 
     public event Action? OnPostSave;

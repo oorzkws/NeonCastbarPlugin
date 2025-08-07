@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Dalamud.NET.Sdk/12.0.2">
+<Project Sdk="Dalamud.NET.Sdk/13.0.0">
     <PropertyGroup>
         <AssemblyTitle>NeonCastbarPlugin</AssemblyTitle>
-        <Version>7.0.2.0</Version>
+        <Version>7.0.3.0</Version>
         <Description>Colors enemy castbars</Description>
         <PackageProjectUrl>https://github.com/oorzkws/NeonCastbarPlugin</PackageProjectUrl>
         <PackageLicenseExpression>AGPL-3.0-or-later</PackageLicenseExpression>
@@ -14,7 +14,7 @@
         <TargetFramework>net9.0-windows</TargetFramework>
         <Platforms>x64</Platforms>
         <Nullable>enable</Nullable>
-        <LangVersion>latest</LangVersion>
+        <LangVersion>preview</LangVersion>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <ProduceReferenceAssembly>false</ProduceReferenceAssembly>
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
@@ -22,6 +22,17 @@
         <OutputPath>bin\$(Configuration)\</OutputPath>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <DalamudLibPath>D:\Utilities\DalamudStandalone\Dalamud\bin\Release\</DalamudLibPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Reference Include="Dalamud.Bindings.ImGui">
+            <HintPath>$(DalamudLibPath)Dalamud.Bindings.ImGui.dll</HintPath>
+            <Private>False</Private>
+        </Reference>
+    </ItemGroup>
+    
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <DebugType>full</DebugType>
         <DefineConstants>DEBUG;TRACE</DefineConstants>
