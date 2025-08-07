@@ -6,8 +6,10 @@ using Dalamud.Game.Addon.Lifecycle;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
 using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
+using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Component.GUI;
 using NeonCastbarPlugin.Windows;
+using System;
 
 namespace NeonCastbarPlugin;
 
@@ -99,21 +101,20 @@ public sealed class NeonCastbarPlugin : IDalamudPlugin
 
     private static unsafe void ResetAddonColor(string addonName)
     {
-        var castbar = (AtkUnitBase*)GameGui.GetAddonByName(addonName).Address;
-        if (castbar is null)
-        {
-            PluginLog.Information($"No addon found with name {addonName}");
+        var addon = (AtkUnitBase*)GameGui.GetAddonByName(addonName).Address;
+        if (addon is null)
             return;
-        }
-        var castbarImage = GetCastbarFromAddon(castbar, addonName);
-        if (castbarImage is null)
+        
+        // 10 steps for CastBarEnemy, 1 otherwise
+        var count = addonName == "CastBarEnemy" ? 10u : 1u;
+        for (var i = count; i > 0; i--)
         {
-            PluginLog.Information($"No AtkImageNode found for addon {addonName}");
-            return;
+            // Grab the image that's stretched to show castbar progress
+            var castbarImage = GetCastbarFromAddon(addon, addonName, i);
+            if (castbarImage is null)
+                return;
+            ResetImageColor(castbarImage);
         }
-        castbarImage->Color.R = 0xFF;
-        castbarImage->Color.G = 0xFF;
-        castbarImage->Color.B = 0xFF;
     }
 
     private void OnConfigurationChanged()
@@ -137,20 +138,22 @@ public sealed class NeonCastbarPlugin : IDalamudPlugin
                                 };
             if (shutdown || addonDisabled)
             {
-                AddonLifecycle.UnregisterListener(AddonEvent.PreRequestedUpdate, addonName, OnUpdateAddon);
+                //AddonLifecycle.UnregisterListener(AddonEvent.PreDraw, addonName, OnUpdateAddon);
+                AddonLifecycle.UnregisterListener(AddonEvent.PostRequestedUpdate, addonName, OnUpdateAddon);
                 ResetAddonColor(addonName);
                 continue;
             }
 
             // If we haven't unregistered, we register
-            AddonLifecycle.RegisterListener(AddonEvent.PreRequestedUpdate, addonName, OnUpdateAddon);
+            //AddonLifecycle.RegisterListener(AddonEvent.PreDraw, addonName, OnUpdateAddon);
+            AddonLifecycle.RegisterListener(AddonEvent.PostRequestedUpdate, addonName, OnUpdateAddon);
         }
     }
     
     private static unsafe AtkResNode* GetNodeByIndex(AtkResNode* parent, uint index) => parent is null ? null : parent->GetComponent()->UldManager.NodeList[index];
     private static unsafe AtkResNode* GetNodeByIndex(AtkUnitBase* parent, uint index) => parent is null ? null : parent->UldManager.NodeList[index];
     
-    private static unsafe AtkImageNode* GetCastbarFromAddon(AtkUnitBase* addon, string addonName)
+    private static unsafe AtkImageNode* GetCastbarFromAddon(AtkUnitBase* addon, string addonName, uint subindex = 10)
     {
         // Get the AtkImageNode for the cast bar fill
         var castbarComponent = addonName switch
@@ -158,10 +161,32 @@ public sealed class NeonCastbarPlugin : IDalamudPlugin
             "_TargetInfo"        => GetNodeByIndex(addon, 43),
             "_TargetInfoCastBar" => GetNodeByIndex(addon,4), // Split-type cast bar
             "_FocusTargetInfo"   => GetNodeByIndex(addon,15),
-            "CastBarEnemy"       => GetNodeByIndex(GetNodeByIndex(addon,10),3), // Boss nameplate castbar subcomponent
+            "CastBarEnemy"       => GetNodeByIndex(GetNodeByIndex(addon, subindex),3), // Boss nameplate castbar subcomponent
             _                    => GetNodeByIndex(addon,43),
         };
         return (AtkImageNode*) castbarComponent;
+    }
+    
+    private static unsafe void ResetImageColor(AtkImageNode* imageNode)
+    {
+        imageNode->AddRed = 0;
+        imageNode->AddGreen = 0;
+        imageNode->AddBlue = 0;;
+        imageNode->Color.R = 255;
+        imageNode->Color.G = 255;
+        imageNode->Color.B = 255;
+        imageNode->Color.A = 255;
+    }
+
+    private static unsafe void SetImageColor(AtkImageNode* imageNode, float r, float g, float b)
+    {
+        imageNode->AddRed = (short)(r * 255);
+        imageNode->AddGreen = (short)(g * 255);
+        imageNode->AddBlue = (short)(b * 255);
+        imageNode->Color.R = 0;
+        imageNode->Color.G = 0;
+        imageNode->Color.B = 0;
+        imageNode->Color.A = 255;
     }
     
     // Where the actual magic happens
@@ -171,21 +196,31 @@ public sealed class NeonCastbarPlugin : IDalamudPlugin
         var addon = (AtkUnitBase*)args.Addon.Address;
         if (addon is null)
             return;
+        
+        // 10 steps for CastBarEnemy, 1 otherwise
+        var count = args.AddonName == "CastBarEnemy" ? 10u : 1u;
+        
         if (!addon->IsVisible)
             return;
 
-        // Grab the image that's stretched to show castbar progress
-        var castbarImage = GetCastbarFromAddon(addon, args.AddonName);
-        if (castbarImage is null)
-            return;
-        if (!castbarImage->IsVisible())
-            return;
-        PluginLog.Verbose($"Writing state to addon {args.AddonName}: {castbarImage->NodeId}");
-        // 0%: R = 0, G = 1.0, B = 1.0 || 100%: R = 1, G = 0, B = 0
-        var progress = castbarImage->GetScaleX();
-        // TODO: Make configurable
-        castbarImage->Color.R = (byte)(progress * 255);
-        castbarImage->Color.G = (byte)(1.0f - (progress * 255));
-        castbarImage->Color.B = (byte)(1.0f - (progress * 255));
+
+        for (var i = count; i > 0; i--)
+        {
+            // Grab the image that's stretched to show castbar progress
+            var castbarImage = GetCastbarFromAddon(addon, args.AddonName, i);
+            if (castbarImage is null)
+                return;
+            
+            if (!castbarImage->IsVisible())
+                return;
+            
+            if (count == 10) // Hide "CASTING" text on nameplate castbar 
+                castbarImage->PrevSiblingNode->ToggleVisibility(false);
+            
+            // 0%: R = 0, G = 1.0, B = 1.0 || 100%: R = 1, G = 0, B = 0
+            var progress = castbarImage->GetScaleX();
+            // TODO: Make configurable
+            SetImageColor(castbarImage, progress, 1.0f-progress, 1.0f-progress);
+        }
     }
 }
